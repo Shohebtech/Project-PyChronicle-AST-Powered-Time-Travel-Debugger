@@ -3,27 +3,40 @@ import sys
 
 def tracer(frame, event, arg):
     if event == "line":
+
+
+        #these will remove the unecessary built-in variales
+        variables = {
+            key: value
+            for key, value in frame.f_locals.items()
+            if key != "__builtins__"
+        }
+
         print(
             "LINE:",
             frame.f_lineno,
             "FUNCTION:",
             frame.f_code.co_name,
+            # "VARS:",
+            # frame.f_locals
             "VARS:",
-            frame.f_locals
+            variables
         )
 
     return tracer
 
 
 def run_tracer(filename):
-    sys.settrace(tracer)
 
     with open(filename, "r") as file:
         code = compile(file.read(), filename, "exec")
 
-    exec(code, {})
+    sys.settrace(tracer)
 
-    sys.settrace(None)
+    try:
+        exec(code, {})
+    finally:
+        sys.settrace(None)
 
 
 if __name__ == "__main__":
