@@ -26,6 +26,9 @@ def tracer(frame, event, arg):
             if key != "__builtins__"
         }
 
+         # Get previous state for THIS frame
+        previous = previous_variables.get(frame, {})
+
         changes = {}
 
         #these will remove the unecessary built-in variales
@@ -35,29 +38,57 @@ def tracer(frame, event, arg):
             if key != "__builtins__"
         }
 
+
+
          # Check new and modified variables
         for key, value in current_variables.items():
 
-            if key not in previous_variables:
+            # if key not in previous_variables:
+            #     changes[key] = {
+            #         "type": "NEW",
+            #         "value": value
+            #     }
+
+            # elif previous_variables[key] != value:
+            #     changes[key] = {
+            #         "type": "MODIFIED",
+            #         "old": previous_variables[key],
+            #         "new": value
+            #     }
+
+            if key not in previous:
+
                 changes[key] = {
                     "type": "NEW",
                     "value": value
                 }
 
-            elif previous_variables[key] != value:
+            elif previous[key] != value:
+
                 changes[key] = {
                     "type": "MODIFIED",
-                    "old": previous_variables[key],
+                    "old": previous[key],
                     "new": value
                 }
 
          # Check removed variables
-        for key in previous_variables:
+        # for key in previous_variables:
+
+        #     if key not in current_variables:
+        #         changes[key] = {
+        #             "type": "REMOVED",
+        #             "old": previous_variables[key]
+        #         }
+
+
+        # Check removed variables
+        for key in previous:
 
             if key not in current_variables:
+
                 changes[key] = {
                     "type": "REMOVED",
-                    "old": previous_variables[key]
+                    "old": previous[key]
                 }
 
 
@@ -123,4 +154,4 @@ def run_tracer(filename):
 
 
 if __name__ == "__main__":
-    run_tracer("scripts/basic.py")
+    run_tracer("scripts/function-script.py")
