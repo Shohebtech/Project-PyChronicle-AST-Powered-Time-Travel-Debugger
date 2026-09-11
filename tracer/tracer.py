@@ -1,6 +1,8 @@
 import sys
 import os
 
+previous_variables = {}
+
 step = 0
 TARGET_FILE = None
 execution_history = []
@@ -8,6 +10,7 @@ execution_history = []
 
 def tracer(frame, event, arg):
     global step
+    global previous_variables
 
     # Trace only target Python file
     if frame.f_code.co_filename != TARGET_FILE:
@@ -17,12 +20,46 @@ def tracer(frame, event, arg):
 
         step += 1
 
+        current_variables = {
+            key: value
+            for key, value in frame.f_locals.items()
+            if key != "__builtins__"
+        }
+
+        changes = {}
+
         #these will remove the unecessary built-in variales
         variables = {
             key: value
             for key, value in frame.f_locals.items()
             if key != "__builtins__"
         }
+
+         # Check new and modified variables
+        for key, value in current_variables.items():
+
+            if key not in previous_variables:
+                changes[key] = {
+                    "type": "NEW",
+                    "value": value
+                }
+
+            elif previous_variables[key] != value:
+                changes[key] = {
+                    "type": "MODIFIED",
+                    "old": previous_variables[key],
+                    "new": value
+                }
+
+         # Check removed variables
+        for key in previous_variables:
+
+            if key not in current_variables:
+                changes[key] = {
+                    "type": "REMOVED",
+                    "old": previous_variables[key]
+                }
+
 
         record = {
             "step": step,
@@ -43,9 +80,23 @@ def tracer(frame, event, arg):
         #     variables
         # )
 
-        execution_history.append(record)
+        print(
+            "LINE:",
+            frame.f_lineno,
+            "FUNCTION:",
+            frame.f_code.co_name,
+            "VARS:",
+            current_variables,
+            "CHANGES:",
+            changes
+        )
 
-        print(record)
+          # Current state becomes previous state
+        previous_variables = current_variables.copy()
+
+        # execution_history.append(record)
+
+        # print(record)
 
     return tracer
 

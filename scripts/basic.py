@@ -1,5 +1,6 @@
 x = 10
-y = 20
-z = x + y
+x = 20
+y = 30
+x = 50
 
-print(z)
+print(x)
