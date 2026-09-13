@@ -27,6 +27,31 @@ class SQLiteStorage:
         # Save the table creation
         self.connection.commit()
 
+    def insert_state(
+        self,
+        timestamp,
+        line_number,
+        variable_name,
+        serialized_value
+    ):
+        # Create a cursor to execute SQL commands
+        cursor = self.connection.cursor()
+
+        # Insert one execution state into the database
+        cursor.execute("""
+            INSERT INTO execution_states
+            (timestamp, line_number, variable_name, serialized_value)
+            VALUES (?, ?, ?, ?)
+        """, (
+            timestamp,
+            line_number,
+            variable_name,
+            serialized_value
+        ))
+
+        # Save the inserted data
+        self.connection.commit()
+
     def close(self):
         # Close the database connection
         self.connection.close()

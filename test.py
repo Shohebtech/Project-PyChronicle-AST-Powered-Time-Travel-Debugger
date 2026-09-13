@@ -5,6 +5,13 @@ storage = SQLiteStorage()
 
 storage.create_tables()
 
-print("SQLite database and table created successfully.")
+storage.insert_state(
+    1.0,
+    10,
+    "x",
+    "100"
+)
+
+print("Execution state inserted successfully.")
 
 storage.close()
