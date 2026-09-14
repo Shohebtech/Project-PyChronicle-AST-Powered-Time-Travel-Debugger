@@ -11,17 +11,17 @@ def find_assignments(tree):
 
         if isinstance(node, ast.Assign):
 
-            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-                variable_name = node.targets[0].id
-                line_number = node.lineno
-
-                value_text = ast.unparse(node.value)
-
-                assignments.append({
-                    "variable": variable_name,
-                    "line": line_number,
-                    "value": value_text
-                })
+            line_number = node.lineno
+ 
+            value_text = ast.unparse(node.value)
+ 
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assignments.append({
+                        "variable": target.id,
+                        "line": line_number,
+                        "value": value_text
+                    })
 
     return assignments
 
