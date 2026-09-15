@@ -71,6 +71,26 @@ class SQLiteStorage:
         # Return all execution states
         return cursor.fetchall()
 
+    def get_states_until(self, execution_id):
+        # Create a cursor to execute SQL commands
+        cursor = self.connection.cursor()
+
+        # Retrieve execution states up to the selected execution ID
+        cursor.execute("""
+            SELECT
+                id,
+                timestamp,
+                line_number,
+                variable_name,
+                serialized_value
+            FROM execution_states
+            WHERE id <= ?
+            ORDER BY id
+        """, (execution_id,))
+
+        # Return historical execution states
+        return cursor.fetchall()
+
     def close(self):
         # Close the database connection
         self.connection.close()

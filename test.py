@@ -21,4 +21,11 @@ print("\nStored execution states:")
 for state in states:
     print(state)
 
+historical_states = storage.get_states_until(2)
+
+print("\nHistorical states up to execution ID 2:")
+
+for state in historical_states:
+    print(state)
+
 storage.close()
