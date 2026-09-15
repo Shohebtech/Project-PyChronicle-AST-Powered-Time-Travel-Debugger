@@ -7,7 +7,7 @@ def find_assignments(tree):
     
     assignments = []
 
-    for node in ast.walk(tree):
+    def visit(node, context):
 
         if isinstance(node, ast.Assign):
 
@@ -20,8 +20,24 @@ def find_assignments(tree):
                     assignments.append({
                         "variable": target.id,
                         "line": line_number,
-                        "value": value_text
+                        "value": value_text,
+                        "context": context
                     })
+
+        if isinstance(node, ast.If):
+            child_context = "if"
+        elif isinstance(node, ast.For):
+            child_context = "for"
+        elif isinstance(node, ast.While):
+            child_context = "while"
+        else:
+            
+            child_context = context
+ 
+        for child in ast.iter_child_nodes(node):
+            visit(child, child_context)
+ 
+    visit(tree, "module")
 
     return assignments
 
@@ -34,5 +50,6 @@ if __name__ == "__main__":
     assignments = find_assignments(tree)
 
     print(f"Found {len(assignments)} assignment(s) in {test_file}:")
+    
     for assignment in assignments:
-        print(f"Line {assignment['line']}: {assignment['variable']} = {assignment['value']}")
+        print(f"Line {assignment['line']}: {assignment['variable']} = {assignment['value']} (context: {assignment['context']})")
