@@ -52,6 +52,25 @@ class SQLiteStorage:
         # Save the inserted data
         self.connection.commit()
 
+    def get_all_states(self):
+        # Create a cursor to execute SQL commands
+        cursor = self.connection.cursor()
+
+        # Retrieve all stored execution states
+        cursor.execute("""
+            SELECT
+                id,
+                timestamp,
+                line_number,
+                variable_name,
+                serialized_value
+            FROM execution_states
+            ORDER BY id
+        """)
+
+        # Return all execution states
+        return cursor.fetchall()
+
     def close(self):
         # Close the database connection
         self.connection.close()

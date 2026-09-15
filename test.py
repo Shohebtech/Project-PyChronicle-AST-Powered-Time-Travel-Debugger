@@ -14,4 +14,11 @@ storage.insert_state(
 
 print("Execution state inserted successfully.")
 
+states = storage.get_all_states()
+
+print("\nStored execution states:")
+
+for state in states:
+    print(state)
+
 storage.close()
