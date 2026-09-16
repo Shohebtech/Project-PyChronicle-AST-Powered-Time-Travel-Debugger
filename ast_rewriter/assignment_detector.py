@@ -30,6 +30,8 @@ def find_assignments(tree):
             child_context = "for"
         elif isinstance(node, ast.While):
             child_context = "while"
+        elif isinstance(node, ast.FunctionDef):
+            child_context = f"function: {node.name}"
         else:
             
             child_context = context
@@ -50,6 +52,6 @@ if __name__ == "__main__":
     assignments = find_assignments(tree)
 
     print(f"Found {len(assignments)} assignment(s) in {test_file}:")
-    
+
     for assignment in assignments:
         print(f"Line {assignment['line']}: {assignment['variable']} = {assignment['value']} (context: {assignment['context']})")
