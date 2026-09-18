@@ -27,5 +27,12 @@ print("\nHistorical states up to execution ID 2:")
 
 for state in historical_states:
     print(state)
+value = [10, 20, 30]
+
+serialized = storage.serialize_value(value)
+print("Serialized value:", serialized)
+
+deserialized = storage.deserialize_value(serialized)
+print("Deserialized value:", deserialized)
 
 storage.close()

@@ -91,6 +91,14 @@ class SQLiteStorage:
         # Return historical execution states
         return cursor.fetchall()
 
+    def serialize_value(self, value):
+        # Convert Python value into a storable format
+        return str(value)
+
+    def deserialize_value(self, value):
+        # Convert stored value back into a Python value
+        return value
+
     def close(self):
         # Close the database connection
         self.connection.close()
