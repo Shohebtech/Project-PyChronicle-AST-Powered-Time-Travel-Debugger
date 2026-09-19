@@ -32,14 +32,14 @@ def transform_simple_assignments(tree):
 
     for node in tree.body:
         new_body.append(node)
-
+ 
         if isinstance(node, ast.Assign):
-            if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-                variable_name = node.targets[0].id
-                line_number = node.lineno
-
-                track_call = build_track_call(variable_name, line_number)
-                new_body.append(track_call)
+            line_number = node.lineno
+ 
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    track_call = build_track_call(target.id, line_number)
+                    new_body.append(track_call)
 
     tree.body = new_body
 
