@@ -9,8 +9,10 @@ track('a', a, line=3)
 track('b', b, line=3)
 if x > 5:
     z = 20
+    track('z', z, line=6)
 for i in range(3):
     w = i
+    track('w', w, line=9)
 
 def greet(name):
     message = 'hello'

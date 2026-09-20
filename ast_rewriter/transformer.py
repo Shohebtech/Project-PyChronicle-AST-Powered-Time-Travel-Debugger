@@ -10,12 +10,12 @@ TRACK_STUB_CODE = (
 
 
 def build_track_call(variable_name, line_number):
-
+    
     call_node = ast.Expr(
         value=ast.Call(
             func=ast.Name(id="track", ctx=ast.Load()),
             args=[
-                ast.Constant(value=variable_name),   
+                ast.Constant(value=variable_name),  
                 ast.Name(id=variable_name, ctx=ast.Load()),  
             ],
             keywords=[
@@ -26,22 +26,34 @@ def build_track_call(variable_name, line_number):
     return call_node
 
 
-def transform_simple_assignments(tree):
+def transform_block(statements):
     
-    new_body = []
+    new_statements = []
 
-    for node in tree.body:
-        new_body.append(node)
- 
+    for node in statements:
+        new_statements.append(node)
+
         if isinstance(node, ast.Assign):
             line_number = node.lineno
- 
+
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     track_call = build_track_call(target.id, line_number)
-                    new_body.append(track_call)
+                    new_statements.append(track_call)
 
-    tree.body = new_body
+        elif isinstance(node, (ast.If, ast.For, ast.While)):
+           
+            node.body = transform_block(node.body)
+
+            if node.orelse:
+                node.orelse = transform_block(node.orelse)
+
+    return new_statements
+
+
+def transform_simple_assignments(tree):
+   
+    tree.body = transform_block(tree.body)
 
     stub_tree = ast.parse(TRACK_STUB_CODE)
     tree.body.insert(0, stub_tree.body[0])
@@ -52,7 +64,7 @@ def transform_simple_assignments(tree):
 
 
 def write_transformed_file(tree, output_path):
-    
+   
     source_code = ast.unparse(tree)
 
     output_dir = os.path.dirname(output_path)
@@ -64,7 +76,7 @@ def write_transformed_file(tree, output_path):
 
 
 if __name__ == "__main__":
-    
+
     input_file = "tests/sample_scripts/sample1.py"
     output_file = "output/sample1_transformed.py"
 
