@@ -23,6 +23,15 @@ class SQLiteStorage:
                 serialized_value TEXT
             )
         """)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_execution_states_variable
+            ON execution_states(variable_name)
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_execution_states_line
+            ON execution_states(line_number)
+        """)
 
         # Save the table creation
         self.connection.commit()
