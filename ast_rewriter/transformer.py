@@ -48,6 +48,9 @@ def transform_block(statements):
             if node.orelse:
                 node.orelse = transform_block(node.orelse)
 
+        elif isinstance(node, ast.FunctionDef):
+            node.body = transform_block(node.body)
+
     return new_statements
 
 

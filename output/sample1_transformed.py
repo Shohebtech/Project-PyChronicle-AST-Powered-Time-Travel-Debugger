@@ -16,6 +16,8 @@ for i in range(3):
 
 def greet(name):
     message = 'hello'
+    track('message', message, line=12)
     return message
+greet('world')
 x += 5
 print(x + y)

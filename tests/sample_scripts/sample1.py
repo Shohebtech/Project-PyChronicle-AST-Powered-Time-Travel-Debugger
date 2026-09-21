@@ -12,6 +12,8 @@ def greet(name):
     message = "hello"
     return message
 
+greet("world")
+
 x += 5
 
 print(x + y)
