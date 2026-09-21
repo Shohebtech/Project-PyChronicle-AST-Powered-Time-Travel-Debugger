@@ -26,6 +26,14 @@ print("Number of stored states:", len(states))
 for state in states:
     print(state)
 
+
+print("\nTesting delta storage:")
+
+print(storage.insert_delta_state(3.0, 20, "x", "100"))
+print(storage.insert_delta_state(4.0, 21, "x", "100"))
+print(storage.insert_delta_state(5.0, 22, "x", "200"))
+
+
 storage.close()
 
 print("Storage test completed successfully.")

@@ -52,6 +52,46 @@ class SQLiteStorage:
         # Save the inserted data
         self.connection.commit()
 
+    def insert_delta_state(
+        self,
+        timestamp,
+        line_number,
+        variable_name,
+        serialized_value
+    ):
+        # Create a cursor to execute SQL commands
+        cursor = self.connection.cursor()
+
+        # Get the most recent value of the same variable
+        cursor.execute("""
+            SELECT serialized_value
+            FROM execution_states
+            WHERE variable_name = ?
+            ORDER BY id DESC
+            LIMIT 1
+        """, (variable_name,))
+
+        previous_state = cursor.fetchone()
+
+        # Insert only if the variable value has changed
+        if previous_state is None or previous_state[0] != serialized_value:
+            cursor.execute("""
+                INSERT INTO execution_states
+                (timestamp, line_number, variable_name, serialized_value)
+                VALUES (?, ?, ?, ?)
+            """, (
+                timestamp,
+                line_number,
+                variable_name,
+                serialized_value
+            ))
+
+            self.connection.commit()
+            return True
+
+        # Skip duplicate value
+        return False
+
     def get_all_states(self):
         # Create a cursor to execute SQL commands
         cursor = self.connection.cursor()
