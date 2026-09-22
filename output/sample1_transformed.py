@@ -20,4 +20,5 @@ def greet(name):
     return message
 greet('world')
 x += 5
+track('x', x, line=17)
 print(x + y)

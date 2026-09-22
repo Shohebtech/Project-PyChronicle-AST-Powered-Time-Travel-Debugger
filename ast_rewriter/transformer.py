@@ -51,6 +51,12 @@ def transform_block(statements):
         elif isinstance(node, ast.FunctionDef):
             node.body = transform_block(node.body)
 
+        elif isinstance(node, ast.AugAssign):
+            if isinstance(node.target, ast.Name):
+                line_number = node.lineno
+                track_call = build_track_call(node.target.id, line_number)
+                new_statements.append(track_call)
+
     return new_statements
 
 
