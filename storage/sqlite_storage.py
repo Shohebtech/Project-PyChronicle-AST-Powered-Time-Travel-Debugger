@@ -61,6 +61,20 @@ class SQLiteStorage:
         # Save the inserted data
         self.connection.commit()
 
+    def insert_many_states(self, states):
+        # Create a cursor to execute SQL commands
+        cursor = self.connection.cursor()
+
+        # Insert multiple execution states at once
+        cursor.executemany("""
+            INSERT INTO execution_states
+            (timestamp, line_number, variable_name, serialized_value)
+            VALUES (?, ?, ?, ?)
+        """, states)
+
+        # Save all inserted states
+        self.connection.commit()
+        
     def insert_delta_state(
         self,
         timestamp,

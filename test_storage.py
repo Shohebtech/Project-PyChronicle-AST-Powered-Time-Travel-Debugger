@@ -33,6 +33,17 @@ print(storage.insert_delta_state(3.0, 20, "x", "100"))
 print(storage.insert_delta_state(4.0, 21, "x", "100"))
 print(storage.insert_delta_state(5.0, 22, "x", "200"))
 
+print("\nTesting batch insertion:")
+
+batch_states = [
+    (10.0, 30, "a", "10"),
+    (11.0, 35, "b", "20"),
+    (12.0, 40, "c", "30")
+]
+
+storage.insert_many_states(batch_states)
+
+print("Batch states inserted successfully.")
 
 storage.close()
 
