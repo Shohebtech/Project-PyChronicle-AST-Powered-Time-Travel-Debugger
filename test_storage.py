@@ -1,3 +1,5 @@
+import time
+from storage.sqlite_storage import SQLiteStorage
 from storage.sqlite_storage import SQLiteStorage
 
 
@@ -44,6 +46,31 @@ batch_states = [
 storage.insert_many_states(batch_states)
 
 print("Batch states inserted successfully.")
+
+print("\nTesting storage performance:")
+
+performance_states = []
+
+for i in range(1000):
+    performance_states.append(
+        (
+            float(i),
+            i,
+            f"variable_{i % 10}",
+            str(i)
+        )
+    )
+
+start_time = time.time()
+
+storage.insert_many_states(performance_states)
+
+end_time = time.time()
+
+elapsed_time = end_time - start_time
+
+print("Inserted 1000 states successfully.")
+print("Insertion time:", round(elapsed_time, 4), "seconds")
 
 storage.close()
 
