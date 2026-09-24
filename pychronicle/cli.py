@@ -1,5 +1,6 @@
 import argparse
 import os
+import subprocess
 import sys
 
 from ast_rewriter.parser import parse_file
@@ -15,6 +16,16 @@ def validate_file(filepath):
     if not filepath.endswith(".py"):
         print(f"Error: Expected a .py file, got -> {filepath}")
         sys.exit(1)
+
+
+def execute_file(filepath):
+    
+    print("Running transformed program...")
+
+    result = subprocess.run(["python", filepath])
+
+    if result.returncode != 0:
+        print(f"Warning: transformed program exited with an error (code {result.returncode})")
 
 
 def run_command(filepath):
@@ -34,16 +45,18 @@ def run_command(filepath):
     transformed_tree = transform_simple_assignments(tree)
 
     base_name = os.path.basename(filepath)         
-    name_without_ext = os.path.splitext(base_name)[0] 
+    name_without_ext = os.path.splitext(base_name)[0]  
     output_path = os.path.join("output", f"{name_without_ext}_transformed.py")
 
     write_transformed_file(transformed_tree, output_path)
 
     print(f"Transformed file written to: {output_path}")
 
+    execute_file(output_path)
+
 
 def main():
-   
+    
     parser = argparse.ArgumentParser(
         prog="pychronicle",
         description="PyChronicle - AST-Powered Time-Travel Debugger"
