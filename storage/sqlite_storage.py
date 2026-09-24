@@ -23,6 +23,7 @@ class SQLiteStorage:
                 serialized_value TEXT
             )
         """)
+
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_execution_states_variable
             ON execution_states(variable_name)
@@ -43,61 +44,9 @@ class SQLiteStorage:
         variable_name,
         serialized_value
     ):
-        # Create a cursor to execute SQL commands
-        cursor = self.connection.cursor()
+        try:
+            cursor = self.connection.cursor()
 
-        # Insert one execution state into the database
-        cursor.execute("""
-            INSERT INTO execution_states
-            (timestamp, line_number, variable_name, serialized_value)
-            VALUES (?, ?, ?, ?)
-        """, (
-            timestamp,
-            line_number,
-            variable_name,
-            serialized_value
-        ))
-
-        # Save the inserted data
-        self.connection.commit()
-
-    def insert_many_states(self, states):
-        # Create a cursor to execute SQL commands
-        cursor = self.connection.cursor()
-
-        # Insert multiple execution states at once
-        cursor.executemany("""
-            INSERT INTO execution_states
-            (timestamp, line_number, variable_name, serialized_value)
-            VALUES (?, ?, ?, ?)
-        """, states)
-
-        # Save all inserted states
-        self.connection.commit()
-        
-    def insert_delta_state(
-        self,
-        timestamp,
-        line_number,
-        variable_name,
-        serialized_value
-    ):
-        # Create a cursor to execute SQL commands
-        cursor = self.connection.cursor()
-
-        # Get the most recent value of the same variable
-        cursor.execute("""
-            SELECT serialized_value
-            FROM execution_states
-            WHERE variable_name = ?
-            ORDER BY id DESC
-            LIMIT 1
-        """, (variable_name,))
-
-        previous_state = cursor.fetchone()
-
-        # Insert only if the variable value has changed
-        if previous_state is None or previous_state[0] != serialized_value:
             cursor.execute("""
                 INSERT INTO execution_states
                 (timestamp, line_number, variable_name, serialized_value)
@@ -110,49 +59,111 @@ class SQLiteStorage:
             ))
 
             self.connection.commit()
-            return True
 
-        # Skip duplicate value
-        return False
+        except sqlite3.Error as error:
+            self.connection.rollback()
+            print("Error inserting execution state:", error)
+
+    def insert_many_states(self, states):
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.executemany("""
+                INSERT INTO execution_states
+                (timestamp, line_number, variable_name, serialized_value)
+                VALUES (?, ?, ?, ?)
+            """, states)
+
+            self.connection.commit()
+
+        except sqlite3.Error as error:
+            self.connection.rollback()
+            print("Error inserting multiple states:", error)
+
+    def insert_delta_state(
+        self,
+        timestamp,
+        line_number,
+        variable_name,
+        serialized_value
+    ):
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute("""
+                SELECT serialized_value
+                FROM execution_states
+                WHERE variable_name = ?
+                ORDER BY id DESC
+                LIMIT 1
+            """, (variable_name,))
+
+            previous_state = cursor.fetchone()
+
+            if previous_state is None or previous_state[0] != serialized_value:
+                cursor.execute("""
+                    INSERT INTO execution_states
+                    (timestamp, line_number, variable_name, serialized_value)
+                    VALUES (?, ?, ?, ?)
+                """, (
+                    timestamp,
+                    line_number,
+                    variable_name,
+                    serialized_value
+                ))
+
+                self.connection.commit()
+                return True
+
+            return False
+
+        except sqlite3.Error as error:
+            self.connection.rollback()
+            print("Error inserting delta state:", error)
+            return False
 
     def get_all_states(self):
-        # Create a cursor to execute SQL commands
-        cursor = self.connection.cursor()
+        try:
+            cursor = self.connection.cursor()
 
-        # Retrieve all stored execution states
-        cursor.execute("""
-            SELECT
-                id,
-                timestamp,
-                line_number,
-                variable_name,
-                serialized_value
-            FROM execution_states
-            ORDER BY id
-        """)
+            cursor.execute("""
+                SELECT
+                    id,
+                    timestamp,
+                    line_number,
+                    variable_name,
+                    serialized_value
+                FROM execution_states
+                ORDER BY id
+            """)
 
-        # Return all execution states
-        return cursor.fetchall()
+            return cursor.fetchall()
+
+        except sqlite3.Error as error:
+            print("Error retrieving execution states:", error)
+            return []
 
     def get_states_until(self, execution_id):
-        # Create a cursor to execute SQL commands
-        cursor = self.connection.cursor()
+        try:
+            cursor = self.connection.cursor()
 
-        # Retrieve execution states up to the selected execution ID
-        cursor.execute("""
-            SELECT
-                id,
-                timestamp,
-                line_number,
-                variable_name,
-                serialized_value
-            FROM execution_states
-            WHERE id <= ?
-            ORDER BY id
-        """, (execution_id,))
+            cursor.execute("""
+                SELECT
+                    id,
+                    timestamp,
+                    line_number,
+                    variable_name,
+                    serialized_value
+                FROM execution_states
+                WHERE id <= ?
+                ORDER BY id
+            """, (execution_id,))
 
-        # Return historical execution states
-        return cursor.fetchall()
+            return cursor.fetchall()
+
+        except sqlite3.Error as error:
+            print("Error retrieving historical states:", error)
+            return []
 
     def serialize_value(self, value):
         # Convert Python value into a storable format
@@ -163,5 +174,7 @@ class SQLiteStorage:
         return value
 
     def close(self):
-        # Close the database connection
-        self.connection.close()
+        try:
+            self.connection.close()
+        except sqlite3.Error as error:
+            print("Error closing database connection:", error)
