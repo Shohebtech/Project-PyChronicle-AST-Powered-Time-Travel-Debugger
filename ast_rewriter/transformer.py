@@ -2,6 +2,8 @@ import ast
 import os
 
 from ast_rewriter.parser import parse_file
+from ast_rewriter.assignment_detector import extract_names
+
 
 TRACK_STUB_CODE = (
     "def track(name, value, line):\n"
@@ -15,7 +17,7 @@ def build_track_call(variable_name, line_number):
         value=ast.Call(
             func=ast.Name(id="track", ctx=ast.Load()),
             args=[
-                ast.Constant(value=variable_name),  
+                ast.Constant(value=variable_name),   
                 ast.Name(id=variable_name, ctx=ast.Load()),  
             ],
             keywords=[
@@ -37,9 +39,16 @@ def transform_block(statements):
             line_number = node.lineno
 
             for target in node.targets:
-                if isinstance(target, ast.Name):
-                    track_call = build_track_call(target.id, line_number)
+                for name_node in extract_names(target):
+                    track_call = build_track_call(name_node.id, line_number)
                     new_statements.append(track_call)
+
+        elif isinstance(node, ast.AugAssign):
+           
+            if isinstance(node.target, ast.Name):
+                line_number = node.lineno
+                track_call = build_track_call(node.target.id, line_number)
+                new_statements.append(track_call)
 
         elif isinstance(node, (ast.If, ast.For, ast.While)):
            
@@ -49,13 +58,8 @@ def transform_block(statements):
                 node.orelse = transform_block(node.orelse)
 
         elif isinstance(node, ast.FunctionDef):
+          
             node.body = transform_block(node.body)
-
-        elif isinstance(node, ast.AugAssign):
-            if isinstance(node.target, ast.Name):
-                line_number = node.lineno
-                track_call = build_track_call(node.target.id, line_number)
-                new_statements.append(track_call)
 
     return new_statements
 
@@ -85,7 +89,7 @@ def write_transformed_file(tree, output_path):
 
 
 if __name__ == "__main__":
-
+    
     input_file = "tests/sample_scripts/sample1.py"
     output_file = "output/sample1_transformed.py"
 
