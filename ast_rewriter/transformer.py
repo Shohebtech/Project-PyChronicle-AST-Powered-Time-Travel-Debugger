@@ -1,8 +1,8 @@
 import ast
+import copy
 import os
 
 from ast_rewriter.parser import parse_file
-from ast_rewriter.assignment_detector import extract_names
 
 
 TRACK_STUB_CODE = (
@@ -11,14 +11,37 @@ TRACK_STUB_CODE = (
 )
 
 
-def build_track_call(variable_name, line_number):
+def extract_target_expressions(target):
+    
+    results = []
+
+    if isinstance(target, ast.Name):
+        value_expr = ast.Name(id=target.id, ctx=ast.Load())
+        results.append((target.id, value_expr))
+
+    elif isinstance(target, (ast.Tuple, ast.List)):
+        for element in target.elts:
+            results.extend(extract_target_expressions(element))
+
+    elif isinstance(target, (ast.Attribute, ast.Subscript)):
+        label = ast.unparse(target)
+
+        value_expr = copy.deepcopy(target)
+        value_expr.ctx = ast.Load()
+
+        results.append((label, value_expr))
+
+    return results
+
+
+def build_track_call(label, value_expr, line_number):
     
     call_node = ast.Expr(
         value=ast.Call(
             func=ast.Name(id="track", ctx=ast.Load()),
             args=[
-                ast.Constant(value=variable_name),   
-                ast.Name(id=variable_name, ctx=ast.Load()),  
+                ast.Constant(value=label),
+                value_expr,
             ],
             keywords=[
                 ast.keyword(arg="line", value=ast.Constant(value=line_number)),
@@ -39,33 +62,36 @@ def transform_block(statements):
             line_number = node.lineno
 
             for target in node.targets:
-                for name_node in extract_names(target):
-                    track_call = build_track_call(name_node.id, line_number)
+                for label, value_expr in extract_target_expressions(target):
+                    track_call = build_track_call(label, value_expr, line_number)
                     new_statements.append(track_call)
 
         elif isinstance(node, ast.AugAssign):
-           
-            if isinstance(node.target, ast.Name):
-                line_number = node.lineno
-                track_call = build_track_call(node.target.id, line_number)
+            
+            line_number = node.lineno
+            target_pairs = extract_target_expressions(node.target)
+
+            if target_pairs:
+                label, value_expr = target_pairs[0]
+                track_call = build_track_call(label, value_expr, line_number)
                 new_statements.append(track_call)
 
         elif isinstance(node, (ast.If, ast.For, ast.While)):
-           
+            
             node.body = transform_block(node.body)
 
             if node.orelse:
                 node.orelse = transform_block(node.orelse)
 
         elif isinstance(node, ast.FunctionDef):
-          
+            
             node.body = transform_block(node.body)
 
     return new_statements
 
 
 def transform_simple_assignments(tree):
-   
+    
     tree.body = transform_block(tree.body)
 
     stub_tree = ast.parse(TRACK_STUB_CODE)
@@ -77,7 +103,7 @@ def transform_simple_assignments(tree):
 
 
 def write_transformed_file(tree, output_path):
-   
+    
     source_code = ast.unparse(tree)
 
     output_dir = os.path.dirname(output_path)
@@ -89,7 +115,7 @@ def write_transformed_file(tree, output_path):
 
 
 if __name__ == "__main__":
-    
+   
     input_file = "tests/sample_scripts/sample1.py"
     output_file = "output/sample1_transformed.py"
 

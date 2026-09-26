@@ -24,4 +24,17 @@ def greet(name):
 greet('world')
 x += 5
 track('x', x, line=19)
+
+class Counter:
+
+    def __init__(self):
+        self.count = 0
+counter = Counter()
+track('counter', counter, line=25)
+counter.count = 99
+track('counter.count', counter.count, line=26)
+arr = [0, 0, 0]
+track('arr', arr, line=28)
+arr[0] = 42
+track('arr[0]', arr[0], line=29)
 print(x + y)

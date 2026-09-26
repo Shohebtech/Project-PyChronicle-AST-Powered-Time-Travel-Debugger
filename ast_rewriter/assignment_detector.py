@@ -3,17 +3,19 @@ import ast
 from ast_rewriter.parser import parse_file
 
 
-def extract_names(target):
+def extract_labels(target):
     
-    names = []
+    labels = []
 
     if isinstance(target, ast.Name):
-        names.append(target)
+        labels.append(target.id)
     elif isinstance(target, (ast.Tuple, ast.List)):
         for element in target.elts:
-            names.extend(extract_names(element))
+            labels.extend(extract_labels(element))
+    elif isinstance(target, (ast.Attribute, ast.Subscript)):
+        labels.append(ast.unparse(target))
 
-    return names
+    return labels
 
 
 def find_assignments(tree):
@@ -21,30 +23,30 @@ def find_assignments(tree):
     assignments = []
 
     def visit(node, context):
-        
+       
         if isinstance(node, ast.Assign):
             line_number = node.lineno
 
             for target in node.targets:
-                names = extract_names(target)
+                labels = extract_labels(target)
 
-                if isinstance(target, ast.Name):
+                if isinstance(target, (ast.Name, ast.Attribute, ast.Subscript)):
                     value_texts = [ast.unparse(node.value)]
 
                 elif (
                     isinstance(target, (ast.Tuple, ast.List))
                     and isinstance(node.value, (ast.Tuple, ast.List))
-                    and len(node.value.elts) == len(names)
+                    and len(node.value.elts) == len(labels)
                 ):
                     value_texts = [ast.unparse(element) for element in node.value.elts]
 
                 else:
                     shared_value = ast.unparse(node.value)
-                    value_texts = [shared_value] * len(names)
+                    value_texts = [shared_value] * len(labels)
 
-                for name_node, value_text in zip(names, value_texts):
+                for label, value_text in zip(labels, value_texts):
                     assignments.append({
-                        "variable": name_node.id,
+                        "variable": label,
                         "line": line_number,
                         "value": value_text,
                         "context": context,
@@ -52,14 +54,16 @@ def find_assignments(tree):
                     })
 
         elif isinstance(node, ast.AugAssign):
-           
-            if isinstance(node.target, ast.Name):
+            
+            labels = extract_labels(node.target)
+
+            if labels:
                 line_number = node.lineno
 
                 full_expression = ast.unparse(node)
 
                 assignments.append({
-                    "variable": node.target.id,
+                    "variable": labels[0],
                     "line": line_number,
                     "value": full_expression,
                     "context": context,
@@ -75,8 +79,9 @@ def find_assignments(tree):
         elif isinstance(node, ast.FunctionDef):
             
             child_context = f"function: {node.name}"
+            
         else:
-          
+            
             child_context = context
 
         for child in ast.iter_child_nodes(node):
