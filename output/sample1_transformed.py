@@ -37,4 +37,15 @@ arr = [0, 0, 0]
 track('arr', arr, line=28)
 arr[0] = 42
 track('arr[0]', arr[0], line=29)
+score = 75
+track('score', score, line=31)
+if score >= 90:
+    grade = 'A'
+    track('grade', grade, line=34)
+elif score >= 75:
+    grade = 'B'
+    track('grade', grade, line=36)
+else:
+    grade = 'C'
+    track('grade', grade, line=38)
 print(x + y)

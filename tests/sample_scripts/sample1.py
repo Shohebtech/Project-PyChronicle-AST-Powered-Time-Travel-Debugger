@@ -28,4 +28,13 @@ counter.count = 99
 arr = [0, 0, 0]
 arr[0] = 42
 
+score = 75
+
+if score >= 90:
+    grade = "A"
+elif score >= 75:
+    grade = "B"
+else:
+    grade = "C"
+
 print(x + y)
