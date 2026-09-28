@@ -48,4 +48,16 @@ elif score >= 75:
 else:
     grade = 'C'
     track('grade', grade, line=38)
+try:
+    ratio = 10 / 0
+    track('ratio', ratio, line=41)
+except ZeroDivisionError:
+    ratio = -1
+    track('ratio', ratio, line=43)
+else:
+    ratio = ratio + 1
+    track('ratio', ratio, line=45)
+finally:
+    finished = True
+    track('finished', finished, line=47)
 print(x + y)

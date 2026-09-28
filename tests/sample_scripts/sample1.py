@@ -37,4 +37,13 @@ elif score >= 75:
 else:
     grade = "C"
 
+try:
+    ratio = 10 / 0
+except ZeroDivisionError:
+    ratio = -1
+else:
+    ratio = ratio + 1
+finally:
+    finished = True
+
 print(x + y)

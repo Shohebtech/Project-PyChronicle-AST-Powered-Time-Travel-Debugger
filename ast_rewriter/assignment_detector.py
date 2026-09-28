@@ -23,7 +23,7 @@ def find_assignments(tree):
     assignments = []
 
     def visit(node, context):
-        
+       
         if isinstance(node, ast.Assign):
             line_number = node.lineno
 
@@ -53,10 +53,10 @@ def find_assignments(tree):
                         "kind": "assign"
                     })
 
-            return 
+            return  
 
         elif isinstance(node, ast.AugAssign):
-            
+           
             labels = extract_labels(node.target)
 
             if labels:
@@ -74,12 +74,12 @@ def find_assignments(tree):
             return  
 
         elif isinstance(node, ast.If):
-
+            
             for child in node.body:
                 visit(child, "if")
 
             if len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If):
-                
+               
                 visit_elif_chain(node.orelse[0])
             else:
                 for child in node.orelse:
@@ -87,6 +87,23 @@ def find_assignments(tree):
 
             return  
 
+        elif isinstance(node, ast.Try):
+           
+            for child in node.body:
+                visit(child, "try")
+
+            for handler in node.handlers:
+                for child in handler.body:
+                    visit(child, "except")
+
+            for child in node.orelse:
+                visit(child, "try-else")
+
+            for child in node.finalbody:
+                visit(child, "finally")
+
+            return  
+        
         if isinstance(node, ast.For):
             child_context = "for"
         elif isinstance(node, ast.While):
@@ -95,7 +112,7 @@ def find_assignments(tree):
             
             child_context = f"function: {node.name}"
         else:
-            
+           
             child_context = context
 
         for child in ast.iter_child_nodes(node):
@@ -126,7 +143,7 @@ if __name__ == "__main__":
     print(f"Found {len(assignments)} assignment(s) in {test_file}:")
     for assignment in assignments:
         if assignment["kind"] == "mutation":
-            display_text = assignment["value"] 
+            display_text = assignment["value"]  
         else:
             display_text = f"{assignment['variable']} = {assignment['value']}"
 
