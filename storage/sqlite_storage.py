@@ -133,6 +133,28 @@ class SQLiteStorage:
             print("Error inserting delta state:", error)
             return False
 
+    def get_variable_history(self, variable_name):
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute("""
+                SELECT
+                    id,
+                    timestamp,
+                    line_number,
+                    variable_name,
+                    serialized_value
+                FROM execution_states
+                WHERE variable_name = ?
+                ORDER BY id
+            """, (variable_name,))
+
+            return cursor.fetchall()
+
+        except sqlite3.Error as error:
+            print("Error retrieving variable history:", error)
+            return []
+
     def get_all_states(self):
         try:
             cursor = self.connection.cursor()

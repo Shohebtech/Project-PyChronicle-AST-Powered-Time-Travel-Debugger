@@ -78,6 +78,13 @@ empty_result = storage.insert_many_states([])
 
 print("Empty batch inserted:", empty_result)
 
+print("\nTesting variable history:")
+
+x_history = storage.get_variable_history("x")
+
+for state in x_history:
+    print(state)
+
 storage.close()
 
 print("Storage test completed successfully.")
