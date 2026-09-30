@@ -7,6 +7,9 @@ from ast_rewriter.parser import parse_file
 from ast_rewriter.transformer import transform_simple_assignments, write_transformed_file
 
 
+__version__ = "0.1.0"
+
+
 def validate_file(filepath):
     
     if not os.path.exists(filepath):
@@ -32,7 +35,7 @@ def execute_file(filepath):
 
 
 def run_command(filepath):
-    
+   
     validate_file(filepath)
 
     print(f"Reading: {filepath}")
@@ -64,7 +67,7 @@ def run_command(filepath):
     try:
         write_transformed_file(transformed_tree, output_path)
     except OSError as e:
-        
+       
         print(f"Error: Could not write transformed file to {output_path}")
         print(e)
         sys.exit(1)
@@ -78,6 +81,12 @@ def main():
     parser = argparse.ArgumentParser(
         prog="pychronicle",
         description="PyChronicle - AST-Powered Time-Travel Debugger"
+    )
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"pychronicle {__version__}"
     )
 
     subparsers = parser.add_subparsers(dest="command")
