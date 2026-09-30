@@ -65,20 +65,31 @@ class SQLiteStorage:
             print("Error inserting execution state:", error)
 
     def insert_many_states(self, states):
+        # Check whether there are states to insert
+        if not states:
+            return 0
+
         try:
             cursor = self.connection.cursor()
 
+            # Insert multiple execution states in one transaction
             cursor.executemany("""
                 INSERT INTO execution_states
                 (timestamp, line_number, variable_name, serialized_value)
                 VALUES (?, ?, ?, ?)
             """, states)
 
+            # Save all inserted states
             self.connection.commit()
 
+            # Return number of inserted states
+            return cursor.rowcount
+
         except sqlite3.Error as error:
+            # Roll back if insertion fails
             self.connection.rollback()
             print("Error inserting multiple states:", error)
+            return 0
 
     def insert_delta_state(
         self,

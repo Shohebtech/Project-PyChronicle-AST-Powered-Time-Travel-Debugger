@@ -72,6 +72,12 @@ elapsed_time = end_time - start_time
 print("Inserted 1000 states successfully.")
 print("Insertion time:", round(elapsed_time, 4), "seconds")
 
+print("\nTesting empty batch:")
+
+empty_result = storage.insert_many_states([])
+
+print("Empty batch inserted:", empty_result)
+
 storage.close()
 
 print("Storage test completed successfully.")
