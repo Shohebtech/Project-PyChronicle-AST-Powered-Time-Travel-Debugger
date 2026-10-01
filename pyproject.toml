@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pychronicle"
+version = "0.1.0"
+description = "PyChronicle - AST-Powered Time-Travel Debugger"
+requires-python = ">=3.8"
+
+# This tells Python's packaging tools: when the "pychronicle" command is
+# typed, run the main() function found in pychronicle/cli.py.
+# This is what lets the tool be run as "pychronicle run script.py"
+# instead of "python -m pychronicle run script.py".
+
+[project.scripts]
+pychronicle = "pychronicle.cli:main"
+
+# Tells setuptools which folders are the actual Python packages to
+# install - our two existing packages, nothing else (not tests/ or output/).
+[tool.setuptools]
+packages = ["pychronicle", "ast_rewriter"]
