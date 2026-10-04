@@ -25,7 +25,7 @@ def extract_target_expressions(target):
 
     elif isinstance(target, (ast.Attribute, ast.Subscript)):
         label = ast.unparse(target)
-        
+
         value_expr = copy.deepcopy(target)
         value_expr.ctx = ast.Load()
 
@@ -84,7 +84,7 @@ def transform_block(statements):
                 node.orelse = transform_block(node.orelse)
 
         elif isinstance(node, ast.Try):
-           
+            
             node.body = transform_block(node.body)
 
             for handler in node.handlers:
@@ -97,7 +97,11 @@ def transform_block(statements):
                 node.finalbody = transform_block(node.finalbody)
 
         elif isinstance(node, ast.FunctionDef):
-           
+            
+            node.body = transform_block(node.body)
+
+        elif isinstance(node, ast.ClassDef):
+            
             node.body = transform_block(node.body)
 
     return new_statements
@@ -116,7 +120,7 @@ def transform_simple_assignments(tree):
 
 
 def write_transformed_file(tree, output_path):
-   
+    
     source_code = ast.unparse(tree)
 
     output_dir = os.path.dirname(output_path)
@@ -128,7 +132,7 @@ def write_transformed_file(tree, output_path):
 
 
 if __name__ == "__main__":
-
+    
     input_file = "tests/sample_scripts/sample1.py"
     output_file = "output/sample1_transformed.py"
 

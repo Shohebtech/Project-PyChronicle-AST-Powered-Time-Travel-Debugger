@@ -89,8 +89,6 @@ built in memory and only the transformed copy is written to disk.
 - `track()` (the function injected into transformed scripts) is currently a
   stub that prints to the console. In the full project, it will hand data
   off to the Execution Tracer module instead.
-- Classes/methods are detected but not yet transformed (their assignments
-  aren't tracked yet).
 - Integration with the Tracer, SQLite Storage, and TUI modules is not yet
   implemented — that's the next phase of development.
 
