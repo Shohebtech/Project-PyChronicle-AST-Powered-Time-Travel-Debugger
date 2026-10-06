@@ -205,6 +205,45 @@ class SQLiteStorage:
     def deserialize_value(self, value):
         # Convert stored value back into a Python value
         return value
+    def get_storage_statistics(self):
+        try:
+            cursor = self.connection.cursor()
+
+            # Get total number of stored states
+            cursor.execute("""
+                SELECT COUNT(*)
+                FROM execution_states
+            """)
+            total_states = cursor.fetchone()[0]
+
+            # Get number of unique variables
+            cursor.execute("""
+                SELECT COUNT(DISTINCT variable_name)
+                FROM execution_states
+            """)
+            unique_variables = cursor.fetchone()[0]
+
+            # Get number of unique execution lines
+            cursor.execute("""
+                SELECT COUNT(DISTINCT line_number)
+                FROM execution_states
+            """)
+            unique_lines = cursor.fetchone()[0]
+
+            return {
+                "total_states": total_states,
+                "unique_variables": unique_variables,
+                "unique_lines": unique_lines
+            }
+
+        except sqlite3.Error as error:
+            print("Error retrieving storage statistics:", error)
+
+            return {
+                "total_states": 0,
+                "unique_variables": 0,
+                "unique_lines": 0
+            }
 
     def close(self):
         try:

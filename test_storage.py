@@ -1,6 +1,5 @@
 import time
 from storage.sqlite_storage import SQLiteStorage
-from storage.sqlite_storage import SQLiteStorage
 
 
 storage = SQLiteStorage("test_pychronicle.db")
@@ -35,6 +34,7 @@ print(storage.insert_delta_state(3.0, 20, "x", "100"))
 print(storage.insert_delta_state(4.0, 21, "x", "100"))
 print(storage.insert_delta_state(5.0, 22, "x", "200"))
 
+
 print("\nTesting batch insertion:")
 
 batch_states = [
@@ -46,6 +46,7 @@ batch_states = [
 storage.insert_many_states(batch_states)
 
 print("Batch states inserted successfully.")
+
 
 print("\nTesting storage performance:")
 
@@ -72,11 +73,13 @@ elapsed_time = end_time - start_time
 print("Inserted 1000 states successfully.")
 print("Insertion time:", round(elapsed_time, 4), "seconds")
 
+
 print("\nTesting empty batch:")
 
 empty_result = storage.insert_many_states([])
 
 print("Empty batch inserted:", empty_result)
+
 
 print("\nTesting variable history:")
 
@@ -84,6 +87,16 @@ x_history = storage.get_variable_history("x")
 
 for state in x_history:
     print(state)
+
+
+print("\nTesting storage statistics:")
+
+statistics = storage.get_storage_statistics()
+
+print("Total states:", statistics["total_states"])
+print("Unique variables:", statistics["unique_variables"])
+print("Unique lines:", statistics["unique_lines"])
+
 
 storage.close()
 
