@@ -51,6 +51,14 @@ class SQLiteStorage:
         # Save the table creation
         self.connection.commit()
 
+    def clear_history(self):
+        try:
+            self.connection.execute("DELETE FROM execution_states")
+            self.connection.commit()
+        except sqlite3.Error as error:
+            self.connection.rollback()
+            print("Error clearing execution history:", error)
+
     def insert_state(
         self,
         position,

@@ -6,6 +6,7 @@ storage = SQLiteStorage()
 storage.create_tables()
 
 storage.insert_state(
+    1,
     1.0,
     10,
     "x",

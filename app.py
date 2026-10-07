@@ -1,10 +1,12 @@
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, Container
-from textual.widgets import Header, Footer, Static, TextArea, Label, Slider, Input, Button, ListView, ListItem
+from textual.widgets import Header, Footer, Static, TextArea, Label, Input, Button, ListView, ListItem
+from textual_slider import Slider
 from textual.reactive import reactive
 from rich.text import Text
 from rich.syntax import Syntax
 
+from pychronicle.pipeline import run_pipeline
 from storage_adapter import HistoryStore
 
 
@@ -166,7 +168,7 @@ class PyChronicleTUI(App):
                 yield CodeView(id="code")
                 with Container(id="timeline_box"):
                     yield Timeline(id="timeline")
-                    yield Slider(0, 0, value=0, id="slider")
+                    yield Slider(0, 1, value=0, id="slider")
                     yield Label(
                         "←/→ move through execution   Home/End jump   "
                         "Watch variables on the right",
@@ -295,5 +297,8 @@ if __name__ == "__main__":
     parser.add_argument("--db", help="SQLite database produced by the storage module")
     parser.add_argument("--source", help="Target Python source file")
     args = parser.parse_args()
+
+    if args.db and args.source:
+        run_pipeline(args.source, args.db)
 
     PyChronicleTUI(db_path=args.db, source_path=args.source).run()

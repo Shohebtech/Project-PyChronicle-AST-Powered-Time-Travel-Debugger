@@ -1,39 +1,45 @@
+import os
+import sys
 import time
+
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tracer import tracer as tracer_module
 from storage.sqlite_storage import SQLiteStorage
 
 
 def run_pipeline(filepath, db_path="pychronicle.db"):
-    
-    tracer_module.run_tracer(filepath)
-
-    history = tracer_module.execution_history
-
     storage = SQLiteStorage(db_path)
     storage.create_tables()
+    storage.clear_history()
 
-    position = 0
-    for record in history:
-        if record["event"] != "LINE":
-            continue
+    try:
+        tracer_module.run_tracer(filepath)
+        history = tracer_module.execution_history
 
-        line_number = record["line"]
-        variables = record["variables"]
+        position = 0
+        for record in history:
+            if record["event"] != "LINE":
+                continue
 
-        for variable_name, value in variables.items():
-            serialized_value = storage.serialize_value(value)
-            storage.insert_state(
-                position,
-                time.time(),
-                line_number,
-                variable_name,
-                serialized_value
-            )
+            line_number = record["line"]
+            variables = record["variables"]
 
-        position += 1
+            for variable_name, value in variables.items():
+                serialized_value = storage.serialize_value(value)
+                storage.insert_state(
+                    position,
+                    time.time(),
+                    line_number,
+                    variable_name,
+                    serialized_value
+                )
 
-    storage.close()
+            position += 1
+    finally:
+        storage.close()
+
     print(f"Pipeline complete: {position} execution point(s) written to {db_path}")
 
     return position

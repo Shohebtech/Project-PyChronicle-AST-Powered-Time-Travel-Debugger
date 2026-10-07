@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pychronicle"
 version = "0.1.0"
 description = "PyChronicle - AST-Powered Time-Travel Debugger"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 # This tells Python's packaging tools: when the "pychronicle" command is
 # typed, run the main() function found in pychronicle/cli.py.
