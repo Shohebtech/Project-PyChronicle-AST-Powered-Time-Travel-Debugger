@@ -9,6 +9,9 @@ from tracer import tracer as tracer_module
 from storage.sqlite_storage import SQLiteStorage
 
 
+EMPTY_STATE_VARIABLE = "__pychronicle_empty_state__"
+
+
 def run_pipeline(filepath, db_path="pychronicle.db"):
     storage = SQLiteStorage(db_path)
     storage.create_tables()
@@ -26,7 +29,12 @@ def run_pipeline(filepath, db_path="pychronicle.db"):
             line_number = record["line"]
             variables = record["variables"]
 
-            for variable_name, value in variables.items():
+            states = (
+                variables.items()
+                if variables
+                else ((EMPTY_STATE_VARIABLE, {}),)
+            )
+            for variable_name, value in states:
                 serialized_value = storage.serialize_value(value)
                 storage.insert_state(
                     position,

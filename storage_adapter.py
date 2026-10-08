@@ -4,6 +4,9 @@ import sqlite3
 from typing import Any
 
 
+EMPTY_STATE_VARIABLE = "__pychronicle_empty_state__"
+
+
 class HistoryStore:
     """
     Adapter between the Textual UI and SQLite.
@@ -54,9 +57,11 @@ class HistoryStore:
             )
 
             point["line"] = int(row["line_number"])
-            point["state"][row["variable_name"]] = self.deserialize(
-                row["serialized_value"]
-            )
+            variable_name = row["variable_name"]
+            if variable_name != EMPTY_STATE_VARIABLE:
+                point["state"][variable_name] = self.deserialize(
+                    row["serialized_value"]
+                )
 
         return list(points.values())
 

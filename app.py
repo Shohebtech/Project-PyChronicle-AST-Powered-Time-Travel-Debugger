@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical, Container
+from textual.containers import Horizontal, Vertical, Container, ScrollableContainer
 from textual.widgets import Header, Footer, Static, TextArea, Label, Input, Button, ListView, ListItem
 from textual_slider import Slider
 from textual.reactive import reactive
@@ -16,7 +16,7 @@ class CodeView(Static):
     current_line = reactive(1)
 
     def __init__(self, source: str = "", **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(expand=True, **kwargs)
         self.source = source
 
     def set_source(self, source: str) -> None:
@@ -25,6 +25,15 @@ class CodeView(Static):
 
     def watch_current_line(self, line: int) -> None:
         self.refresh()
+        self.call_after_refresh(self._scroll_to_line, line)
+
+    def _scroll_to_line(self, line: int) -> None:
+        if isinstance(self.parent, ScrollableContainer):
+            self.parent.scroll_to(
+                y=max(line - 1, 0),
+                animate=False,
+                immediate=True,
+            )
 
     def render(self):
         if not self.source:
@@ -97,7 +106,14 @@ class PyChronicleTUI(App):
         width: 42%;
     }
 
-    #state_box, #watch_box {
+    #state_box {
+        height: 2fr;
+        border: solid $secondary;
+        margin: 0 0 1 1;
+        padding: 1;
+    }
+
+    #watch_box {
         height: 1fr;
         border: solid $secondary;
         margin: 0 0 1 1;
@@ -117,7 +133,7 @@ class PyChronicleTUI(App):
 
     #code {
         height: 1fr;
-        overflow-y: auto;
+        overflow-y: scroll;
     }
 
     #slider {
@@ -130,6 +146,11 @@ class PyChronicleTUI(App):
 
     #watch_list {
         height: 1fr;
+    }
+
+    #state_scroll {
+        height: 1fr;
+        overflow-y: scroll;
     }
 
     .hint {
@@ -165,7 +186,8 @@ class PyChronicleTUI(App):
         with Horizontal(id="main"):
             with Vertical(id="left"):
                 yield Label("SOURCE CODE", id="code_title")
-                yield CodeView(id="code")
+                with ScrollableContainer(id="code"):
+                    yield CodeView(id="code_content")
                 with Container(id="timeline_box"):
                     yield Timeline(id="timeline")
                     yield Slider(0, 1, value=0, id="slider")
@@ -178,7 +200,8 @@ class PyChronicleTUI(App):
             with Vertical(id="right"):
                 with Container(id="state_box"):
                     yield Label("VARIABLE STATE", id="state_title")
-                    yield StatePanel(id="state")
+                    with ScrollableContainer(id="state_scroll"):
+                        yield StatePanel(id="state")
 
                 with Container(id="watch_box"):
                     yield Label("WATCH VARIABLES", id="watch_title")
@@ -216,10 +239,10 @@ class PyChronicleTUI(App):
 
         self.history = history
         slider = self.query_one("#slider", Slider)
-        #slider.high = max(len(self.history) - 1, 0)
+        slider.max = max(len(self.history) - 1, 0)
         slider.value = 0
 
-        self.query_one("#code", CodeView).set_source(self.source)
+        self.query_one("#code_content", CodeView).set_source(self.source)
         self.refresh_position()
 
     def refresh_position(self) -> None:
@@ -230,7 +253,7 @@ class PyChronicleTUI(App):
         line = int(point["line"])
         state = point.get("state", {})
 
-        self.query_one("#code", CodeView).current_line = line
+        self.query_one("#code_content", CodeView).current_line = line
         self.query_one("#state", StatePanel).set_state(state, self.watched)
         self.query_one("#timeline", Timeline).set_position(
             self.position, len(self.history), line

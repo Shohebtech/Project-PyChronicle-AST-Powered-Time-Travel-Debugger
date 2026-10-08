@@ -17,6 +17,9 @@ def tracer(frame, event, arg):
 
     function_name = frame.f_code.co_name
 
+    if function_name == "track":
+        return tracer
+
    
     step_counter += 1
 
@@ -46,9 +49,16 @@ def tracer(frame, event, arg):
        
         current_variables = {
             key: value
-            for key, value in frame.f_locals.items()
-            if key != "__builtins__"
+            for key, value in frame.f_globals.items()
+            if key not in {"__builtins__", "track"}
         }
+        current_variables.update(
+            {
+                key: value
+                for key, value in frame.f_locals.items()
+                if key not in {"__builtins__", "track"}
+            }
+        )
 
     
         previous = previous_variables.get(frame, {})
@@ -200,4 +210,3 @@ if __name__ == "__main__":
 
     for record in execution_history:
         print(record)
-
