@@ -216,7 +216,7 @@ class PyChronicleTUI(App):
 
         self.history = history
         slider = self.query_one("#slider", Slider)
-        slider.high = max(len(self.history) - 1, 0)
+        #slider.high = max(len(self.history) - 1, 0)
         slider.value = 0
 
         self.query_one("#code", CodeView).set_source(self.source)
